@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人事档案关键字段梳理 - Agent看板</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 32px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        .header .subtitle {
+            color: #8892b0;
+            font-size: 14px;
+        }
+        .header .date {
+            color: #64ffda;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0,212,255,0.1);
+        }
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .card-title .icon {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+        }
+
+        /* Module 1 */
+        .module1 .icon { background: linear-gradient(135deg, #00d4ff, #0099cc); }
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 10px;
+        }
+        .field-item {
+            background: rgba(0,212,255,0.08);
+            border-left: 3px solid #00d4ff;
+            padding: 10px 14px;
+            border-radius: 0 8px 8px 0;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .field-item .num {
+            background: #00d4ff;
+            color: #1a1a2e;
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        /* Module 2 */
+        .module2 .icon { background: linear-gradient(135deg, #7b2cbf, #c77dff); }
+        .system-section {
+            margin-bottom: 24px;
+        }
+        .system-section:last-child { margin-bottom: 0; }
+        .system-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: #c77dff;
+            margin-bottom: 12px;
+            padding: 8px 16px;
+            background: rgba(123,44,191,0.15);
+            border-radius: 8px;
+            display: inline-block;
+        }
+        .system-label.money { color: #64ffda; background: rgba(100,255,218,0.1); }
+        .system-label.legal { color: #ffd700; background: rgba(255,215,0,0.1); }
+        .field-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .field-table th {
+            background: rgba(255,255,255,0.08);
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 500;
+            color: #8892b0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .field-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .field-table tr:hover td {
+            background: rgba(255,255,255,0.03);
+        }
+        .field-tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .tag-money { background: rgba(100,255,218,0.15); color: #64ffda; }
+        .tag-legal { background: rgba(255,215,0,0.15); color: #ffd700; }
+        .tag-new { background: rgba(255,107,107,0.15); color: #ff6b6b; }
+
+        .notice-box {
+            background: rgba(255,193,7,0.1);
+            border: 1px solid rgba(255,193,7,0.3);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-top: 16px;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+        .notice-box strong { color: #ffc107; }
+
+        /* Module 3 */
+        .module3 .icon { background: linear-gradient(135deg, #ff6b6b, #ee5a24); }
+        .problem-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .problem-item {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 18px 20px;
+            border-left: 4px solid #ff6b6b;
+        }
+        .problem-item .prob-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .problem-item .prob-num {
+            width: 28px; height: 28px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+            font-weight: bold;
+            color: white;
+            flex-shrink: 0;
+        }
+        .problem-item .prob-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #ff6b6b;
+        }
+        .problem-item .prob-detail {
+            font-size: 13px;
+            color: #a0a0b0;
+            line-height: 1.8;
+            padding-left: 38px;
+        }
+        .problem-item .prob-detail .highlight {
+            color: #ff9f43;
+            font-weight: 500;
+        }
+        .problem-item .prob-detail .names {
+            color: #64ffda;
+            font-size: 12px;
+        }
+        .prob-stat {
+            display: inline-block;
+            background: rgba(255,107,107,0.15);
+            color: #ff6b6b;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        /* Source link */
+        .source-bar {
+            background: rgba(0,212,255,0.08);
+            border: 1px solid rgba(0,212,255,0.2);
+            border-radius: 12px;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .source-bar .source-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .source-bar .file-icon {
+            font-size: 24px;
+        }
+        .source-bar .file-name {
+            font-size: 14px;
+            color: #e0e0e0;
+        }
+        .source-bar .file-desc {
+            font-size: 12px;
+            color: #8892b0;
+        }
+        .source-bar a {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #1a1a2e;
+            text-decoration: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: opacity 0.3s;
+        }
+        .source-bar a:hover { opacity: 0.85; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #8892b0;
+            font-size: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .field-grid { grid-template-columns: 1fr; }
+            .source-bar { flex-direction: column; gap: 12px; text-align: center; }
+        }
+    </style>
+<base target="_blank">
+<base target="_blank">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📋 人事档案关键字段梳理 — Agent看板</h1>
+            <div class="subtitle">员工人事合同全信息台账 · 关键字段映射与系统关联分析</div>
+            <div class="date">梳理日期：2026年6月16日 | 数据覆盖：79名员工 | 字段总数：35项</div>
+        </div>
+
+        <!-- Module 1: 关键字段清单 -->
+        <div class="card module1">
+            <div class="card-title">
+                <div class="icon">📊</div>
+                <span>第一模块：Excel关键字段信息清单（共35项）</span>
+            </div>
+            <div class="field-grid">
+                <div class="field-item"><span class="num">1</span>员工姓名</div>
+                <div class="field-item"><span class="num">2</span>合同公司</div>
+                <div class="field-item"><span class="num">3</span>合同类型</div>
+                <div class="field-item"><span class="num">4</span>员工状态</div>
+                <div class="field-item"><span class="num">5</span>首次合同起始日</div>
+                <div class="field-item"><span class="num">6</span>首次合同到期日</div>
+                <div class="field-item"><span class="num">7</span>试用期起始日</div>
+                <div class="field-item"><span class="num">8</span>试用期到期日</div>
+                <div class="field-item"><span class="num">9</span>首次合同期限</div>
+                <div class="field-item"><span class="num">10</span>续签次数</div>
+                <div class="field-item"><span class="num">11</span>第一次续签起止时间</div>
+                <div class="field-item"><span class="num">12</span>第二次续签起止时间</div>
+                <div class="field-item"><span class="num">13</span>第三次续签起止时间</div>
+                <div class="field-item"><span class="num">14</span>现合同起始日</div>
+                <div class="field-item"><span class="num">15</span>现合同到期日</div>
+                <div class="field-item"><span class="num">16</span>主要工作地点</div>
+                <div class="field-item"><span class="num">17</span>试用期薪资 💰</div>
+                <div class="field-item"><span class="num">18</span>正式薪资 💰</div>
+                <div class="field-item"><span class="num">19</span>发薪日 💰</div>
+                <div class="field-item"><span class="num">20</span>部门</div>
+                <div class="field-item"><span class="num">21</span>职务</div>
+                <div class="field-item"><span class="num">22</span>合同变更时间</div>
+                <div class="field-item"><span class="num">23</span>合同变更情况</div>
+                <div class="field-item"><span class="num">24</span>工作年限计算 💰</div>
+                <div class="field-item"><span class="num">25</span>合同解除情况</div>
+                <div class="field-item"><span class="num">26</span>合同主体变更次数</div>
+                <div class="field-item"><span class="num">27</span>首次合同主体 ⚖️</div>
+                <div class="field-item"><span class="num">28</span>变更后合同主体1 ⚖️</div>
+                <div class="field-item"><span class="num">29</span>变更时间1 ⚖️</div>
+                <div class="field-item"><span class="num">30</span>变更后合同主体2 ⚖️</div>
+                <div class="field-item"><span class="num">31</span>变更时间2 ⚖️</div>
+                <div class="field-item"><span class="num">32</span>主体变更详细说明 ⚖️</div>
+                <div class="field-item"><span class="num">33</span>社保公积金缴纳基数/缴纳比例 💰</div>
+                <div class="field-item"><span class="num">34</span>岗位职级/薪级薪档 💰</div>
+                <div class="field-item"><span class="num">35</span>是否约定保密义务和竞业限制</div>
+            </div>
+            <div style="margin-top:14px; font-size:12px; color:#8892b0;">
+                <span style="color:#64ffda;">💰</span> = 与"钱系统"（收付款）关联字段 &nbsp;&nbsp; 
+                <span style="color:#ffd700;">⚖️</span> = 与"事系统"（法务用印）关联字段
+            </div>
+        </div>
+
+        <!-- Module 2: 系统关联 -->
+        <div class="card module2">
+            <div class="card-title">
+                <div class="icon">🔗</div>
+                <span>第二模块：字段与业务系统关联映射</span>
+            </div>
+
+            <!-- 钱系统 -->
+            <div class="system-section">
+                <div class="system-label money">💰 钱系统（收付款/薪酬管理）</div>
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th style="width:25%">Excel字段名</th>
+                            <th style="width:35%">字段说明</th>
+                            <th style="width:40%">系统对接建议</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="field-tag tag-money">试用期薪资</span></td>
+                            <td>试用期期间薪酬标准</td>
+                            <td>薪酬模块-试用期工资计算依据</td>
+                        </tr>
+                        <tr>
+                            <td><span class="field-tag tag-money">正式薪资</span></td>
+                            <td>转正后薪酬标准</td>
+                            <td>薪酬模块-月度工资发放基准</td>
+                        </tr>
+                        <tr>
+                            <td><span class="field-tag tag-money">发薪日</span></td>
+                            <td>工资发放日期（多为每月5日）</td>
+                            <td>薪酬模块-发薪批次调度</td>
+                        </tr>
+                        <tr>
+                            <td><span class="field-tag tag-money">社保公积金缴纳基数/缴纳比例</span></td>
+                            <td>五险一金缴费基数与比例</td>
+                            <td>社保公积金模块-月度扣缴计算</td>
+                        </tr>
+                        <tr>
+                            <td><span class="field-tag tag-money">岗位职级/薪级薪档</span></td>
+                            <td>岗位等级与薪酬档位</td>
+                            <td>薪酬模块-薪级体系映射 / 预算管控</td>
+                        </tr>
+                        <tr>
+                            <td><span class="field-tag tag-money">工作年限计算</span></td>
+                            <td>工龄起算规则与累计方式</td>
+                            <td>薪酬模块-年假/工龄工资/经济补偿金计算</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 事系统 -->
+            <div class="system-section">
+                <div class="system-label legal">⚖️ 事系统（法务用印/合同管理）</div>
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th style="width:25%">Excel字段名</th>
+                            <th style="width:35%">字段说明</th>
+                            <th style="width:40%">系统对接建议</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="field-tag tag-legal">首次合同主体</span></td>
+                            <td>新员工首次签约的法人主体</td>
+                            <td>用印模块-签约主体校验 / 印章分配</td>
+                        </tr>
+                        <tr>
+                            <td><span class="field-tag tag-legal">变更后合同主体1</span></td>
+                            <td>第一次主体变更后的法人</td>
+                            <td>用印模块-变更协议主体校验</td>
+                        </tr>
+                        <tr>
+                            <td><span class="field-tag tag-legal">变更时间1</span></td>
+                            <td>第一次主体变更生效日期</td>
+                            <td>用印模块-变更协议日期校验</td>
+                        </tr>
+                        <tr>
+                            <td><span class="field-tag tag-legal">变更后合同主体2</span></td>
+                            <td>第二次主体变更后的法人</td>
+                            <td>用印模块-二次变更协议主体校验</td>
+                        </tr>
+                        <tr>
+                            <td><span class="field-tag tag-legal">变更时间2</span></td>
+                            <td>第二次主体变更生效日期</td>
+                            <td>用印模块-二次变更协议日期校验</td>
+                        </tr>
+                        <tr>
+                            <td><span class="field-tag tag-legal">主体变更详细说明</span></td>
+                            <td>主体变更全过程文字描述</td>
+                            <td>用印模块-变更历史追溯 / 合规审计</td>
+                        </tr>
+                        <tr>
+                            <td><span class="field-tag tag-legal">合同主体变更次数</span></td>
+                            <td>累计变更次数统计</td>
+                            <td>用印模块-变更频次预警 / 风险识别</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 新增建议 -->
+            <div class="notice-box">
+                <strong>📝 后续系统搭建建议新增字段：</strong><br>
+                <span class="field-tag tag-new">用印印章类型</span> — 由于历史档案规范性问题较为混乱，
+                不同主体/不同合同类型对应的印章类型（公章、合同专用章、法人章等）在现有台账中未做统一规范记录，
+                导致法务用印审批时无法自动匹配印章池。建议在系统搭建时<strong>新增该字段</strong>，
+                按「主体→合同类型→印章类型」做规则映射，实现用印申请的自动化校验。
+            </div>
+        </div>
+
+        <!-- Module 3: 问题清单 -->
+        <div class="card module3">
+            <div class="card-title">
+                <div class="icon">⚠️</div>
+                <span>第三模块：历史档案梳理发现的问题清单</span>
+            </div>
+            <div class="problem-list">
+                <div class="problem-item">
+                    <div class="prob-header">
+                        <div class="prob-num">1</div>
+                        <div class="prob-title">部分老员工存在断档/缺离职证明或变更证明</div>
+                        <span class="prob-stat">涉及 8 人</span>
+                    </div>
+                    <div class="prob-detail">
+                        梳理中发现多名员工存在劳动关系中断后重新入职、或协商解除后复岗的情形，
+                        但档案中<span class="highlight">缺少离职证明、解除协议或变更三方协议</span>等关键材料，
+                        存在工龄连续计算争议风险。<br>
+                        <span class="names">涉及人员：黄欢欢、李欣怡、金学忠、俞慧敏、王妤扬、张毅、吴靖娴、宣国英</span>
+                    </div>
+                </div>
+
+                <div class="problem-item">
+                    <div class="prob-header">
+                        <div class="prob-num">2</div>
+                        <div class="prob-title">部分员工劳动合同岗位与实际岗位不符但缺乏变更材料</div>
+                        <span class="prob-stat">涉及 9 人</span>
+                    </div>
+                    <div class="prob-detail">
+                        部分员工在台账中记录的部门/职务存在多个岗位（如"品牌部、公寓运营部"），
+                        但<span class="highlight">合同变更时间与变更情况均为"无明确记载"</span>，
+                        无法证明岗位调整是否经过双方协商一致并签署变更协议，存在劳动争议隐患。<br>
+                        <span class="names">涉及人员：林知峰、党红艳、苏坤、方有保、程璐、黄一萧、陶洁、吕相坠、罗俊尧</span>
+                    </div>
+                </div>
+
+                <div class="problem-item">
+                    <div class="prob-header">
+                        <div class="prob-num">3</div>
+                        <div class="prob-title">部分老员工用工主体变更次数过多，整理复杂</div>
+                        <span class="prob-stat">涉及 8 人（≥2次变更）</span>
+                    </div>
+                    <div class="prob-detail">
+                        历史沿革中因集团架构调整，部分员工经历<span class="highlight">3-4次主体变更</span>，
+                        涉及多个法人主体之间的三方协议、工作年限累计计算等复杂场景。
+                        现有Excel字段（仅支持2次变更记录）已无法完整承载，需升级数据结构。<br>
+                        <span class="names">高频变更：武敏辉(4次)、葛豪平(3次)、沈丽霞(3次)、徐峰(3次)、季嘉莉(2次)、杨漾(2次)、王永佳(2次)、郑昌杰(2次)</span>
+                    </div>
+                </div>
+
+                <div class="problem-item">
+                    <div class="prob-header">
+                        <div class="prob-num">4</div>
+                        <div class="prob-title">待补充：其他数据质量与规范性问题</div>
+                        <span class="prob-stat">多项</span>
+                    </div>
+                    <div class="prob-detail">
+                        • <span class="highlight">薪酬数据大面积脱敏</span>：试用期薪资缺失 54 人，正式薪资缺失 52 人，
+                        均以"**"或"无明确标注"填充，无法满足薪酬系统对接需求；<br>
+                        • <span class="highlight">社保公积金信息不全</span>：36 人缺少缴纳基数/比例记录；<br>
+                        • <span class="highlight">岗位职级体系不统一</span>：16 人缺少薪级薪档信息，现有记录格式混杂（如"I级/III级"、"助理→主管"等）；<br>
+                        • <span class="highlight">保密义务记录缺失</span>：23 人未明确是否签署保密协议；<br>
+                        • <span class="highlight">合同类型与协议类型混用</span>：劳动合同、劳务协议、实习协议、固定期限/无固定期限等分类标准不统一。
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Source File -->
+        <div class="source-bar">
+            <div class="source-info">
+                <div class="file-icon">📎</div>
+                <div>
+                    <div class="file-name">人事档案关键字段表.xlsx</div>
+                    <div class="file-desc">员工人事合同全信息台账 · 源数据文件</div>
+                </div>
+            </div>
+            <a href="https://fkqmidohkperokttcbjx.supabase.co/storage/v1/object/public/AZY-files/1%20contract%20words%20.xlsx" target="_blank">⬇️ 下载源文件</a>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            人事档案关键字段梳理 · Agent看板 v1.0 | 由系统自动生成 | 数据截止日期：2026年6月16日
+        </div>
+    </div>
+</body>
+</html>
