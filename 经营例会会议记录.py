@@ -124,26 +124,26 @@ def sync_from_github():
 st.markdown("""
 <style>
     #MainMenu, footer, header {visibility: hidden;}
-    * {font-size: 14px !important; line-height: 1.5 !important;}
-    h1 {font-size: 28px !important;}
-    h2 {font-size: 22px !important;}
-    h3 {font-size: 18px !important;}
-    h4 {font-size: 16px !important;}
-    h5 {font-size: 14px !important;}
-    .stButton button {font-size: 13px !important; padding: 6px 14px !important; border-radius: 6px !important;}
+    * {font-size: 18px !important; line-height: 1.6 !important;}
+    h1 {font-size: 48px !important;}
+    h2 {font-size: 36px !important;}
+    h3 {font-size: 28px !important;}
+    h4 {font-size: 24px !important;}
+    h5 {font-size: 20px !important;}
+    .stButton button {font-size: 16px !important; padding: 10px 20px !important; border-radius: 8px !important;}
     .stButton button {min-width: 60px !important; white-space: nowrap !important; letter-spacing: 0 !important;}
-    [data-testid="stVerticalBlock"] > div {min-height: 28px !important;}
-    .cal-day {display:flex;align-items:center;justify-content:center;min-height:28px;padding:4px 0;font-size:12px;}
-    .cal-day-empty {display:flex;align-items:center;justify-content:center;min-height:28px;}
+    [data-testid="stVerticalBlock"] > div {min-height: 40px !important;}
+    .cal-day {display:flex;align-items:center;justify-content:center;min-height:36px;padding:6px 0;font-size:14px;}
+    .cal-day-empty {display:flex;align-items:center;justify-content:center;min-height:36px;}
     .stButton button {min-width: 60px !important; white-space: nowrap !important; letter-spacing: 0 !important;}
-    .stTabs [data-baseweb="tab"] {font-size: 14px !important; padding: 6px 12px !important;}
-    .stTabs [data-baseweb="tab-highlight"] {height: 3px !important;}
+    .stTabs [data-baseweb="tab"] {font-size: 18px !important; padding: 10px 18px !important;}
+    .stTabs [data-baseweb="tab-highlight"] {height: 4px !important;}
     .block-container {padding: 1rem 1.5rem 0.5rem 1.5rem !important;}
     .stColumns {gap: 0.25rem !important;}
     .element-container {margin: 0rem !important; padding: 0rem !important;}
-    section[data-testid="stSidebar"] * {font-size: 13px !important;}
-    .main-title {font-size: 28px; font-weight: 700; color: #1a202c; margin-bottom: 0.5rem;}
-    .login-box {max-width: 400px; margin: 40px auto; padding: 24px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);}
+    section[data-testid="stSidebar"] * {font-size: 16px !important;}
+    .main-title {font-size: 48px; font-weight: 700; color: #1a202c; margin-bottom: 0.5rem;}
+    .login-box {max-width: 500px; margin: 60px auto; padding: 30px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);}
 </style>
 """, unsafe_allow_html=True)
 
@@ -244,7 +244,7 @@ with tabs[ti]:
         st.rerun()
 
     # Calendar grid + Preview side by side
-    cal_col, preview_col = st.columns([1, 6])
+    cal_col, preview_col = st.columns([1, 3])
 
     with cal_col:
         # Weekday headers
@@ -292,7 +292,7 @@ with tabs[ti]:
             st.markdown(f"#### 📄 {pd} 会议纪要")
             raw = load_html_content_raw(pf)
             if raw:
-                st.components.v1.html(raw, height=1200, scrolling=True)
+                st.components.v1.html(raw, height=1000, scrolling=True)
             else:
                 st.error("无法读取文件")
         else:
