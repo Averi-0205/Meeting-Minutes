@@ -131,9 +131,15 @@ st.markdown("""
     h4 {font-size: 44px !important;}
     h5 {font-size: 38px !important;}
     .stButton button {font-size: 34px !important; padding: 14px 28px !important; border-radius: 10px !important;}
+    .stButton button {min-width: 60px !important; white-space: nowrap !important; letter-spacing: 0 !important;}
+    [data-testid="stVerticalBlock"] > div {min-height: 62px !important;}
+    .cal-day {display:flex;align-items:center;justify-content:center;min-height:52px;padding:8px 0;}
+    .cal-day-empty {display:flex;align-items:center;justify-content:center;min-height:52px;}
+    .stButton button {min-width: 60px !important; white-space: nowrap !important; letter-spacing: 0 !important;}
     .stTabs [data-baseweb="tab"] {font-size: 38px !important; padding: 14px 24px !important;}
     .stTabs [data-baseweb="tab-highlight"] {height: 5px !important;}
     .block-container {padding: 1rem 1.5rem 0.5rem 1.5rem !important;}
+    .stColumns {gap: 0.25rem !important;}
     .element-container {margin: 0rem !important; padding: 0rem !important;}
     section[data-testid="stSidebar"] * {font-size: 34px !important;}
     .main-title {font-size: 80px; font-weight: 700; color: #1a202c; margin-bottom: 0.5rem;}
@@ -257,7 +263,7 @@ with tabs[ti]:
         cols = st.columns(7)
         # Empty cells before first day
         for _ in range(start_weekday):
-            cols[current_col].markdown("<div style='text-align:center;padding:6px'>&nbsp;</div>", unsafe_allow_html=True)
+            cols[current_col].markdown("<div class='cal-day-empty'>&nbsp;</div>", unsafe_allow_html=True)
             current_col += 1
 
         for day in range(1, days_in_month + 1):
@@ -271,12 +277,12 @@ with tabs[ti]:
                     st.session_state.preview_cal_date = date_str
                     st.rerun()
             else:
-                cols[current_col].markdown(f"<div style='text-align:center;padding:6px;color:#a0aec0'>{day}</div>", unsafe_allow_html=True)
+                cols[current_col].markdown(f"<div class='cal-day' style='color:#a0aec0'>{day}</div>", unsafe_allow_html=True)
             current_col += 1
 
         # Fill remaining cells
         while current_col < 7 and current_col > 0:
-            cols[current_col].markdown("<div style='text-align:center;padding:6px'>&nbsp;</div>", unsafe_allow_html=True)
+            cols[current_col].markdown("<div class='cal-day-empty'>&nbsp;</div>", unsafe_allow_html=True)
             current_col += 1
 
     with preview_col:
