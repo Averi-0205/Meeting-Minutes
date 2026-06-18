@@ -1,4 +1,4 @@
-import hashlib
+﻿import hashlib
 import json
 import os
 import re
@@ -124,26 +124,26 @@ def sync_from_github():
 st.markdown("""
 <style>
     #MainMenu, footer, header {visibility: hidden;}
-    * {font-size: 36px !important; line-height: 1.5 !important;}
-    h1 {font-size: 80px !important;}
-    h2 {font-size: 64px !important;}
-    h3 {font-size: 52px !important;}
-    h4 {font-size: 44px !important;}
-    h5 {font-size: 38px !important;}
-    .stButton button {font-size: 34px !important; padding: 14px 28px !important; border-radius: 10px !important;}
+    * {font-size: 14px !important; line-height: 1.5 !important;}
+    h1 {font-size: 28px !important;}
+    h2 {font-size: 22px !important;}
+    h3 {font-size: 18px !important;}
+    h4 {font-size: 16px !important;}
+    h5 {font-size: 14px !important;}
+    .stButton button {font-size: 13px !important; padding: 6px 14px !important; border-radius: 6px !important;}
     .stButton button {min-width: 60px !important; white-space: nowrap !important; letter-spacing: 0 !important;}
-    [data-testid="stVerticalBlock"] > div {min-height: 62px !important;}
-    .cal-day {display:flex;align-items:center;justify-content:center;min-height:52px;padding:8px 0;}
-    .cal-day-empty {display:flex;align-items:center;justify-content:center;min-height:52px;}
+    [data-testid="stVerticalBlock"] > div {min-height: 28px !important;}
+    .cal-day {display:flex;align-items:center;justify-content:center;min-height:28px;padding:4px 0;font-size:12px;}
+    .cal-day-empty {display:flex;align-items:center;justify-content:center;min-height:28px;}
     .stButton button {min-width: 60px !important; white-space: nowrap !important; letter-spacing: 0 !important;}
-    .stTabs [data-baseweb="tab"] {font-size: 38px !important; padding: 14px 24px !important;}
-    .stTabs [data-baseweb="tab-highlight"] {height: 5px !important;}
+    .stTabs [data-baseweb="tab"] {font-size: 14px !important; padding: 6px 12px !important;}
+    .stTabs [data-baseweb="tab-highlight"] {height: 3px !important;}
     .block-container {padding: 1rem 1.5rem 0.5rem 1.5rem !important;}
     .stColumns {gap: 0.25rem !important;}
     .element-container {margin: 0rem !important; padding: 0rem !important;}
-    section[data-testid="stSidebar"] * {font-size: 34px !important;}
-    .main-title {font-size: 80px; font-weight: 700; color: #1a202c; margin-bottom: 0.5rem;}
-    .login-box {max-width: 600px; margin: 60px auto; padding: 30px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);}
+    section[data-testid="stSidebar"] * {font-size: 13px !important;}
+    .main-title {font-size: 28px; font-weight: 700; color: #1a202c; margin-bottom: 0.5rem;}
+    .login-box {max-width: 400px; margin: 40px auto; padding: 24px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);}
 </style>
 """, unsafe_allow_html=True)
 
@@ -153,7 +153,7 @@ if not st.session_state.get("logged_in"):
     with col2:
         st.markdown("<div class='login-box'>", unsafe_allow_html=True)
         with st.form("login_form", clear_on_submit=False):
-            account = st.text_input("账号", placeholder="例如：jenny_zhang")
+            account = st.text_input("账号", placeholder="???jenny")
             password = st.text_input("密码", type="password")
             submitted = st.form_submit_button("登录", type="primary", use_container_width=True)
             if submitted:
@@ -244,7 +244,7 @@ with tabs[ti]:
         st.rerun()
 
     # Calendar grid + Preview side by side
-    cal_col, preview_col = st.columns([1, 2.5])
+    cal_col, preview_col = st.columns([1, 6])
 
     with cal_col:
         # Weekday headers
@@ -292,7 +292,7 @@ with tabs[ti]:
             st.markdown(f"#### 📄 {pd} 会议纪要")
             raw = load_html_content_raw(pf)
             if raw:
-                st.components.v1.html(raw, height=800, scrolling=True)
+                st.components.v1.html(raw, height=1200, scrolling=True)
             else:
                 st.error("无法读取文件")
         else:
