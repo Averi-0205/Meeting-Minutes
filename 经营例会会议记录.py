@@ -1,6 +1,7 @@
 ﻿import hashlib
 import json
 import os
+import urllib.parse
 import re
 import base64
 from pathlib import Path
@@ -109,14 +110,13 @@ def sync_from_github():
             fn = item.get("name", "")
             if not fn.endswith(".html"):
                 continue
-            lp = MEETINGS_DIR / fn
-            if lp.exists():
-                continue
             encoded = urllib.parse.quote(fn, safe="-_.")
-            dr = requests.get(SUPABASE_URL.replace("https://", "https://") + "/storage/v1/object/public/meetings/" + filename, timeout=30)
+            dr = requests.get(SUPABASE_URL + "/storage/v1/object/public/meetings/" + encoded, timeout=30)
             if dr.status_code == 200:
-                lp.write_bytes(dr.content)
-                count += 1
+                lp = MEETINGS_DIR / fn
+                if not lp.exists() or lp.read_bytes() != dr.content:
+                    lp.write_bytes(dr.content)
+                    count += 1
         return count
     except Exception:
         return 0
