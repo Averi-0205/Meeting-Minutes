@@ -87,7 +87,7 @@ def delete_from_github(filename):
 def upload_to_github(filename, content_bytes):
     try:
         r = requests.post(SUPABASE_URL.replace("https://", "https://") + "/storage/v1/object/meetings/" + filename,
-            headers={"apikey": SB_SERVICE_KEY, "Authorization": "Bearer " + SB_SERVICE_KEY, "Content-Type": "text/html"},
+            headers={"apikey": SB_SERVICE_KEY, "Authorization": "Bearer " + SB_SERVICE_KEY, "Content-Type": "text/html", "x-upsert": "true"},
             data=content_bytes, timeout=60)
         if r.status_code in (200, 201):
             return True, "已同步到 Supabase"
@@ -98,24 +98,32 @@ def upload_to_github(filename, content_bytes):
 def sync_from_github():
     try:
         MEETINGS_DIR.mkdir(parents=True, exist_ok=True)
-        r = requests.post(SUPABASE_URL.replace("https://", "https://") + "/storage/v1/object/list/meetings",
+        r = requests.post(SUPABASE_URL + "/storage/v1/object/list/meetings",
             headers=STORAGE_HEADERS, json={"prefix": ""}, timeout=30)
         if r.status_code != 200:
             return 0
         files = r.json()
         if not isinstance(files, list):
             return 0
+        remote_names = set()
         count = 0
         for item in files:
             fn = item.get("name", "")
             if not fn.endswith(".html"):
                 continue
+            remote_names.add(fn)
             encoded = urllib.parse.quote(fn, safe="-_.")
             dr = requests.get(SUPABASE_URL + "/storage/v1/object/public/meetings/" + encoded, timeout=30)
             if dr.status_code == 200:
                 lp = MEETINGS_DIR / fn
                 if not lp.exists() or lp.read_bytes() != dr.content:
                     lp.write_bytes(dr.content)
+                    count += 1
+        # Remove local files that were deleted from Supabase
+        if MEETINGS_DIR.exists():
+            for local_file in MEETINGS_DIR.glob("*.html"):
+                if local_file.name not in remote_names:
+                    local_file.unlink()
                     count += 1
         return count
     except Exception:
@@ -348,6 +356,7 @@ with tabs[ti]:
             else:
                 st.warning("⚠️ 已本地保存：" + filename + "，但 GitHub 同步失败（" + msg + "）")
             st.session_state.upload_key += 1
+            st.session_state.sync_done = False
             st.rerun()
 ti += 1
 
@@ -410,6 +419,7 @@ if st.session_state.get("is_admin"):
                         st.success("✅ 已删除：" + df["filename"])
                     else:
                         st.warning("⚠️ 本地已删除，但 GitHub 删除失败（" + msg + "）")
+                    st.session_state.sync_done = False
                     st.rerun()
 
         st.divider()
@@ -439,4 +449,5 @@ if st.session_state.get("is_admin"):
                         st.success("✅ 已替换并同步：" + mod_select)
                     else:
                         st.warning("⚠️ 已本地替换，但 GitHub 同步失败（" + msg + "）")
+                    st.session_state.sync_done = False
                     st.rerun()
