@@ -98,6 +98,7 @@ def upload_to_github(filename, content_bytes):
 def sync_from_github():
     try:
         MEETINGS_DIR.mkdir(parents=True, exist_ok=True)
+        sync_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}-.+\.html$")
         r = requests.post(SUPABASE_URL + "/storage/v1/object/list/meetings",
             headers=STORAGE_HEADERS, json={"prefix": ""}, timeout=30)
         if r.status_code != 200:
@@ -105,25 +106,17 @@ def sync_from_github():
         files = r.json()
         if not isinstance(files, list):
             return 0
-        remote_names = set()
         count = 0
         for item in files:
             fn = item.get("name", "")
-            if not fn.endswith(".html"):
+            if not sync_pattern.match(fn):
                 continue
-            remote_names.add(fn)
             encoded = urllib.parse.quote(fn, safe="-_.")
             dr = requests.get(SUPABASE_URL + "/storage/v1/object/public/meetings/" + encoded, timeout=30)
             if dr.status_code == 200:
                 lp = MEETINGS_DIR / fn
                 if not lp.exists() or lp.read_bytes() != dr.content:
                     lp.write_bytes(dr.content)
-                    count += 1
-        # Remove local files that were deleted from Supabase
-        if MEETINGS_DIR.exists():
-            for local_file in MEETINGS_DIR.glob("*.html"):
-                if local_file.name not in remote_names:
-                    local_file.unlink()
                     count += 1
         return count
     except Exception:
