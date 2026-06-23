@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会议纪要看板 - 2026.06.16</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { font-family: 'Noto Sans SC', sans-serif; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 25%, #3a7ca5 50%, #4a9fc9 75%, #5fb4d9 100%);
+        }
+
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .priority-high { 
+            background: linear-gradient(135deg, #ef4444, #dc2626); 
+            color: white; 
+        }
+        .priority-medium { 
+            background: linear-gradient(135deg, #f59e0b, #d97706); 
+            color: white; 
+        }
+        .priority-low { 
+            background: linear-gradient(135deg, #10b981, #059669); 
+            color: white; 
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .status-进行中 { background: #dbeafe; color: #1e40af; }
+        .status-待决策 { background: #fef3c7; color: #92400e; }
+        .status-规划中 { background: #fce7f3; color: #9d174d; }
+        .status-执行中 { background: #d1fae5; color: #065f46; }
+        .status-优化中 { background: #e0e7ff; color: #3730a3; }
+        .status-待开始 { background: #f3f4f6; color: #4b5563; }
+
+        .category-tag {
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .cat-财务 { background: #fef3c7; color: #92400e; }
+        .cat-人事 { background: #fce7f3; color: #9d174d; }
+        .cat-组织 { background: #dbeafe; color: #1e40af; }
+        .cat-业务 { background: #d1fae5; color: #065f46; }
+        .cat-运营 { background: #e0e7ff; color: #3730a3; }
+        .cat-技术 { background: #cffafe; color: #155e75; }
+        .cat-系统 { background: #f3e8ff; color: #6b21a8; }
+
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            position: relative;
+        }
+        .timeline-dot::after {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: calc(100% + 20px);
+            background: #e5e7eb;
+        }
+        .timeline-dot:last-child::after { display: none; }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .scroll-hide::-webkit-scrollbar { display: none; }
+        .scroll-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .float-animation { animation: float 3s ease-in-out infinite; }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.6); }
+        }
+        .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+
+        .tab-active {
+            background: white;
+            color: #1e40af;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .expandable-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out;
+        }
+        .expandable-content.expanded {
+            max-height: 500px;
+        }
+
+        .deadline-countdown {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            border: 1px solid #fca5a5;
+        }
+    </style>
+<base target="_blank">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 顶部导航 -->
+    <nav class="gradient-bg text-white sticky top-0 z-50 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur">
+                        <i class="fas fa-clipboard-list text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">会议纪要智能看板</h1>
+                        <p class="text-sm text-blue-200">2026年6月16日 · 组织架构与财务系统优化专项会议</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="deadline-countdown px-4 py-2 rounded-lg flex items-center gap-2">
+                        <i class="fas fa-clock text-red-500"></i>
+                        <span class="text-red-700 font-bold text-sm">距6.30截止仅剩 <span id="countdown" class="text-lg">14</span> 天</span>
+                    </div>
+                    <div class="bg-white/10 px-3 py-1 rounded-lg text-sm backdrop-blur">
+                        <i class="fas fa-users mr-1"></i> 11人参会
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        <!-- 关键指标卡片区 -->
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <div class="glass-panel rounded-xl p-4 card-hover cursor-pointer">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-gray-500 text-xs font-medium">议程总数</span>
+                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-list-check text-blue-600 text-sm"></i>
+                    </div>
+                </div>
+                <div class="text-2xl font-bold text-gray-800">10</div>
+                <div class="text-xs text-gray-400 mt-1">涵盖7大类别</div>
+            </div>
+
+            <div class="glass-panel rounded-xl p-4 card-hover cursor-pointer">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-gray-500 text-xs font-medium">待办事项</span>
+                    <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-tasks text-red-600 text-sm"></i>
+                    </div>
+                </div>
+                <div class="text-2xl font-bold text-gray-800">5</div>
+                <div class="text-xs text-gray-400 mt-1">4项高优先级</div>
+            </div>
+
+            <div class="glass-panel rounded-xl p-4 card-hover cursor-pointer">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-gray-500 text-xs font-medium">6.30截止</span>
+                    <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-calendar-day text-orange-600 text-sm"></i>
+                    </div>
+                </div>
+                <div class="text-2xl font-bold text-orange-600">3</div>
+                <div class="text-xs text-gray-400 mt-1">紧急待办</div>
+            </div>
+
+            <div class="glass-panel rounded-xl p-4 card-hover cursor-pointer">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-gray-500 text-xs font-medium">进行中</span>
+                    <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-spinner text-green-600 text-sm"></i>
+                    </div>
+                </div>
+                <div class="text-2xl font-bold text-green-600">5</div>
+                <div class="text-xs text-gray-400 mt-1">积极推进中</div>
+            </div>
+
+            <div class="glass-panel rounded-xl p-4 card-hover cursor-pointer">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-gray-500 text-xs font-medium">系统建设</span>
+                    <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-cogs text-purple-600 text-sm"></i>
+                    </div>
+                </div>
+                <div class="text-2xl font-bold text-purple-600">3</div>
+                <div class="text-xs text-gray-400 mt-1">HMS 2.0相关</div>
+            </div>
+
+            <div class="glass-panel rounded-xl p-4 card-hover cursor-pointer">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-gray-500 text-xs font-medium">人事调整</span>
+                    <div class="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-user-cog text-pink-600 text-sm"></i>
+                    </div>
+                </div>
+                <div class="text-2xl font-bold text-pink-600">3</div>
+                <div class="text-xs text-gray-400 mt-1">岗位/架构变动</div>
+            </div>
+        </div>
+
+        <!-- 关键结论区 -->
+        <div class="glass-panel rounded-xl p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-star text-white text-sm"></i>
+                </div>
+                <h2 class="text-lg font-bold text-gray-800">关键结论（7条）</h2>
+                <span class="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">核心决策</span>
+            </div>
+            <div class="grid md:grid-cols-2 gap-3">
+                <div class="bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 p-4 rounded-r-lg">
+                    <div class="flex items-start gap-3">
+                        <span class="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">1</span>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-800">六月三十号为关键财务截止日</p>
+                            <p class="text-xs text-gray-600 mt-1">需完成靠谱人力资源的现金流报表与PL表关闭</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-r from-orange-50 to-orange-100 border-l-4 border-orange-500 p-4 rounded-r-lg">
+                    <div class="flex items-start gap-3">
+                        <span class="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">2</span>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-800">王倩后台工作决策</p>
+                            <p class="text-xs text-gray-600 mt-1">两周内决定是否接手后台账务；若不接手，由黄欢欢暂管或新人承接</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                    <div class="flex items-start gap-3">
+                        <span class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">3</span>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-800">杜宪回归负责人事工作</p>
+                            <p class="text-xs text-gray-600 mt-1">推动HKMS 2.0系统中人事模块建设，梳理流程与制度执行</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-r from-green-50 to-green-100 border-l-4 border-green-500 p-4 rounded-r-lg">
+                    <div class="flex items-start gap-3">
+                        <span class="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">4</span>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-800">财务数据系统还原</p>
+                            <p class="text-xs text-gray-600 mt-1">以2023年7月15日版流程为基础进行系统还原</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-r from-purple-50 to-purple-100 border-l-4 border-purple-500 p-4 rounded-r-lg">
+                    <div class="flex items-start gap-3">
+                        <span class="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">5</span>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-800">组织架构6.30前更新</p>
+                            <p class="text-xs text-gray-600 mt-1">职能分工同步厘清，提交最终组织架构图</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-r from-cyan-50 to-cyan-100 border-l-4 border-cyan-500 p-4 rounded-r-lg">
+                    <div class="flex items-start gap-3">
+                        <span class="w-6 h-6 bg-cyan-500 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">6</span>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-800">API对接推进</p>
+                            <p class="text-xs text-gray-600 mt-1">收款接口（捷顺停车费等）由陈双杰与小慧协同推进</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-r from-indigo-50 to-indigo-100 border-l-4 border-indigo-500 p-4 rounded-r-lg md:col-span-2">
+                    <div class="flex items-start gap-3">
+                        <span class="w-6 h-6 bg-indigo-500 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">7</span>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-800">Bella继续推进系统建设</p>
+                            <p class="text-xs text-gray-600 mt-1">全面推进HMS 2.0系统建设，实现业务入口统一管理，收款模块与捷顺停车系统、公寓悦樘系统完成API对接</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 图表与数据可视化区 -->
+        <div class="grid lg:grid-cols-3 gap-6">
+            <!-- 状态分布饼图 -->
+            <div class="glass-panel rounded-xl p-5">
+                <h3 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+                    <i class="fas fa-chart-pie text-blue-500"></i> 议程状态分布
+                </h3>
+                <div class="relative h-48">
+                    <canvas id="statusChart"></canvas>
+                </div>
+                <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500"></span>进行中 5</div>
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-pink-400"></span>规划中 4</div>
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-400"></span>待决策 1</div>
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-400"></span>执行中 1</div>
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-indigo-400"></span>优化中 1</div>
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-gray-400"></span>待开始 3</div>
+                </div>
+            </div>
+
+            <!-- 类别分布 -->
+            <div class="glass-panel rounded-xl p-5">
+                <h3 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+                    <i class="fas fa-chart-bar text-green-500"></i> 业务类别分布
+                </h3>
+                <div class="relative h-48">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+                <div class="mt-3 flex flex-wrap gap-2 text-xs">
+                    <span class="px-2 py-1 bg-amber-100 text-amber-700 rounded">财务 2</span>
+                    <span class="px-2 py-1 bg-pink-100 text-pink-700 rounded">人事 2</span>
+                    <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded">组织 1</span>
+                    <span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded">业务 1</span>
+                    <span class="px-2 py-1 bg-indigo-100 text-indigo-700 rounded">运营 1</span>
+                    <span class="px-2 py-1 bg-cyan-100 text-cyan-700 rounded">技术 1</span>
+                    <span class="px-2 py-1 bg-purple-100 text-purple-700 rounded">系统 2</span>
+                </div>
+            </div>
+
+            <!-- 待办优先级与截止 -->
+            <div class="glass-panel rounded-xl p-5">
+                <h3 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+                    <i class="fas fa-bullseye text-red-500"></i> 待办优先级矩阵
+                </h3>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+                            <span class="text-sm font-medium text-gray-700">高优先级</span>
+                        </div>
+                        <span class="text-lg font-bold text-red-600">4</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-200">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-amber-500 rounded-full"></span>
+                            <span class="text-sm font-medium text-gray-700">中优先级</span>
+                        </div>
+                        <span class="text-lg font-bold text-amber-600">1</span>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-gray-200">
+                        <p class="text-xs text-gray-500 mb-2">截止分布</p>
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div class="bg-orange-500 h-full rounded-full" style="width: 60%"></div>
+                            </div>
+                            <span class="text-xs text-gray-600 w-20">6月30日前 3</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div class="bg-blue-500 h-full rounded-full" style="width: 40%"></div>
+                            </div>
+                            <span class="text-xs text-gray-600 w-20">其他时间 2</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 标签页切换区 -->
+        <div class="glass-panel rounded-xl overflow-hidden">
+            <div class="flex border-b border-gray-200 bg-gray-50/50">
+                <button onclick="switchTab('agenda')" id="tab-agenda" class="tab-active flex-1 py-3 px-4 text-sm font-semibold transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-list-ul"></i> 会议议程 (10)
+                </button>
+                <button onclick="switchTab('actions')" id="tab-actions" class="flex-1 py-3 px-4 text-sm font-semibold text-gray-500 hover:text-gray-700 transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-check-square"></i> 待办事项 (5)
+                </button>
+                <button onclick="switchTab('participants')" id="tab-participants" class="flex-1 py-3 px-4 text-sm font-semibold text-gray-500 hover:text-gray-700 transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-users"></i> 参会人员 (11)
+                </button>
+                <button onclick="switchTab('timeline')" id="tab-timeline" class="flex-1 py-3 px-4 text-sm font-semibold text-gray-500 hover:text-gray-700 transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-stream"></i> 时间线
+                </button>
+            </div>
+
+            <!-- 议程内容 -->
+            <div id="content-agenda" class="p-5">
+                <div class="grid md:grid-cols-2 gap-4">
+                    <!-- 议程卡片 1 -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-4 card-hover cursor-pointer" onclick="toggleDetail(this)">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="category-tag cat-财务">财务</span>
+                                <span class="status-badge status-进行中">进行中</span>
+                            </div>
+                            <span class="priority-high px-2 py-1 rounded text-xs font-bold">高优</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800 mb-1">1. 半年度财务结算与现金流分析</h4>
+                        <p class="text-xs text-gray-500 mb-2">负责人：财务团队</p>
+                        <div class="expandable-content">
+                            <div class="pt-2 text-sm text-gray-600 border-t border-gray-100 mt-2">
+                                2026年6月30日半年度财务结算，重点分析靠谱人力资源公司现金流。讨论历史数据趋势、最低现金点，明确六月三十号为关键结账节点。提及返税未到账、香港结汇周期差等影响现金流的因素，强调系统化报表将提升准确性和效率。
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 text-xs text-gray-400 mt-2">
+                            <i class="fas fa-chevron-down"></i> 点击展开详情
+                        </div>
+                    </div>
+
+                    <!-- 议程卡片 2 -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-4 card-hover cursor-pointer" onclick="toggleDetail(this)">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="category-tag cat-人事">人事</span>
+                                <span class="status-badge status-待决策">待决策</span>
+                            </div>
+                            <span class="priority-high px-2 py-1 rounded text-xs font-bold">高优</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800 mb-1">2. 后台管理工作安排</h4>
+                        <p class="text-xs text-gray-500 mb-2">负责人：王倩(Michelle)</p>
+                        <div class="expandable-content">
+                            <div class="pt-2 text-sm text-gray-600 border-t border-gray-100 mt-2">
+                                王倩主要负责前台账务工作，接手后台管理可能导致超负荷。要求两周内决定是否接手后台工作；若不接手，由黄欢欢暂管或招聘新人负责。
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 text-xs text-gray-400 mt-2">
+                            <i class="fas fa-chevron-down"></i> 点击展开详情
+                        </div>
+                    </div>
+
+                    <!-- 议程卡片 3 -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-4 card-hover cursor-pointer" onclick="toggleDetail(this)">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="category-tag cat-组织">组织</span>
+                                <span class="status-badge status-规划中">规划中</span>
+                            </div>
+                            <span class="priority-high px-2 py-1 rounded text-xs font-bold">高优</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800 mb-1">3. 组织架构调整与人事职能回归</h4>
+                        <p class="text-xs text-gray-500 mb-2">负责人：杜宪</p>
+                        <div class="expandable-content">
+                            <div class="pt-2 text-sm text-gray-600 border-t border-gray-100 mt-2">
+                                杜宪全面接手人事工作，熟悉公司流程且具备文档与系统能力。各岗位回归本位，避免职责交叉。启动招聘补充人力（需招聘具有招商能力的新人），确保组织稳定运行。
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 text-xs text-gray-400 mt-2">
+                            <i class="fas fa-chevron-down"></i> 点击展开详情
+                        </div>
+                    </div>
+
+                    <!-- 议程卡片 4 -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-4 card-hover cursor-pointer" onclick="toggleDetail(this)">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="category-tag cat-财务">财务</span>
+                                <span class="status-badge status-执行中">执行中</span>
+                            </div>
+                            <span class="priority-medium px-2 py-1 rounded text-xs font-bold">中优</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800 mb-1">4. 账务系统交接与分工明确</h4>
+                        <p class="text-xs text-gray-500 mb-2">负责人：黄欢欢 / 陈锦</p>
+                        <div class="expandable-content">
+                            <div class="pt-2 text-sm text-gray-600 border-t border-gray-100 mt-2">
+                                开弈投资系账务部6月1日起正式运作，五月份账务由黄欢欢完成，六月份起由管培生陈锦接手，需做好带教过渡。账务逻辑已清晰，后续以系统化方式推进，确保数据连贯性与准确性。
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 text-xs text-gray-400 mt-2">
+                            <i class="fas fa-chevron-down"></i> 点击展开详情
+                        </div>
+                    </div>
+
+                    <!-- 议程卡片 5 -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-4 card-hover cursor-pointer" onclick="toggleDetail(this)">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="category-tag cat-业务">业务</span>
+                                <span class="status-badge status-进行中">进行中</span>
+                            </div>
+                            <span class="priority-medium px-2 py-1 rounded text-xs font-bold">中优</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800 mb-1">5. 业务部门KPI核算与收入计划制定</h4>
+                        <p class="text-xs text-gray-500 mb-2">负责人：商办部门</p>
+                        <div class="expandable-content">
+                            <div class="pt-2 text-sm text-gray-600 border-t border-gray-100 mt-2">
+                                商办部门需在6月30日前补全全年收入计划，支持内部KPI考核。明确从现金流转向账期核算的标准，基于去年基础数进行结算平衡。部署下半年C区游泳池变现任务，小慧整理历史数据并测算投入回报周期。
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 text-xs text-gray-400 mt-2">
+                            <i class="fas fa-chevron-down"></i> 点击展开详情
+                        </div>
+                    </div>
+
+                    <!-- 议程卡片 6 -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-4 card-hover cursor-pointer" onclick="toggleDetail(this)">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="category-tag cat-运营">运营</span>
+                                <span class="status-badge status-规划中">规划中</span>
+                            </div>
+                            <span class="priority-medium px-2 py-1 rounded text-xs font-bold">中优</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800 mb-1">6. 运营改造与预算管控策略</h4>
+                        <p class="text-xs text-gray-500 mb-2">负责人：运营团队</p>
+                        <div class="expandable-content">
+                            <div class="pt-2 text-sm text-gray-600 border-t border-gray-100 mt-2">
+                                规划A/B区空间改造打通通道、优化产品结构，提升收入转化。物业预算有限，优先保障能快速现金回流的项目。决策基于"多久能收回成本"的核心指标，集中资源于租金回升与运营效率提升。
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 text-xs text-gray-400 mt-2">
+                            <i class="fas fa-chevron-down"></i> 点击展开详情
+                        </div>
+                    </div>
+
+                    <!-- 议程卡片 7 -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-4 card-hover cursor-pointer" onclick="toggleDetail(this)">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="category-tag cat-技术">技术</span>
+                                <span class="status-badge status-进行中">进行中</span>
+                            </div>
+                            <span class="priority-high px-2 py-1 rounded text-xs font-bold">高优</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800 mb-1">7. 系统自动化与API对接目标</h4>
+                        <p class="text-xs text-gray-500 mb-2">负责人：Bella / 陈双杰 / 小慧</p>
+                        <div class="expandable-content">
+                            <div class="pt-2 text-sm text-gray-600 border-t border-gray-100 mt-2">
+                                全面推进HMS 2.0系统建设，实现业务入口统一管理。收款模块与捷顺停车系统、公寓悦樘系统完成API对接，杜绝手工导入导出。自动化是未来方向，手工仅为退而求其次的临时手段。
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 text-xs text-gray-400 mt-2">
+                            <i class="fas fa-chevron-down"></i> 点击展开详情
+                        </div>
+                    </div>
+
+                    <!-- 议程卡片 8 -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-4 card-hover cursor-pointer" onclick="toggleDetail(this)">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="category-tag cat-系统">系统</span>
+                                <span class="status-badge status-优化中">优化中</span>
+                            </div>
+                            <span class="priority-medium px-2 py-1 rounded text-xs font-bold">中优</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800 mb-1">8. 合同与用印管理系统演示与优化</h4>
+                        <p class="text-xs text-gray-500 mb-2">负责人：Bella</p>
+                        <div class="expandable-content">
+                            <div class="pt-2 text-sm text-gray-600 border-t border-gray-100 mt-2">
+                                Bella现场演示合同发起、法务审核、用印审批及归档全流程。非标准合同必须经法务审核，系统还原2023年7月15日版流程。Jenny提出界面优化建议：风险提示、字段自动提取、页面内解析文件内容等。
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 text-xs text-gray-400 mt-2">
+                            <i class="fas fa-chevron-down"></i> 点击展开详情
+                        </div>
+                    </div>
+
+                    <!-- 议程卡片 9 -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-4 card-hover cursor-pointer" onclick="toggleDetail(this)">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="category-tag cat-人事">人事</span>
+                                <span class="status-badge status-规划中">规划中</span>
+                            </div>
+                            <span class="priority-medium px-2 py-1 rounded text-xs font-bold">中优</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800 mb-1">9. 人事招聘与入职流程电子化</h4>
+                        <p class="text-xs text-gray-500 mb-2">负责人：黄燕婷</p>
+                        <div class="expandable-content">
+                            <div class="pt-2 text-sm text-gray-600 border-t border-gray-100 mt-2">
+                                梳理从简历筛选到员工入职的完整流程，包括聘用申请表、求职申请表、面试安排、录用通知、入职引导表等。推动全流程电子化，支持在线填写与审批流转。提出纸质表扫描上传结合电子审批的混合模式。
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 text-xs text-gray-400 mt-2">
+                            <i class="fas fa-chevron-down"></i> 点击展开详情
+                        </div>
+                    </div>
+
+                    <!-- 议程卡片 10 -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-4 card-hover cursor-pointer" onclick="toggleDetail(this)">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="category-tag cat-系统">系统</span>
+                                <span class="status-badge status-规划中">规划中</span>
+                            </div>
+                            <span class="priority-medium px-2 py-1 rounded text-xs font-bold">中优</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800 mb-1">10. 员工生命周期管理与系统集成</h4>
+                        <p class="text-xs text-gray-500 mb-2">负责人：杜宪 / 系统团队</p>
+                        <div class="expandable-content">
+                            <div class="pt-2 text-sm text-gray-600 border-t border-gray-100 mt-2">
+                                建立覆盖员工"入转调离"全周期的数字化管理体系，整合考勤、薪酬、社保、个税、合同续签等功能。Payroll为独立模块，需与人事系统联动。支持离职申请与交接清单闭环管理，形成完整的人力资源管理闭环。
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 text-xs text-gray-400 mt-2">
+                            <i class="fas fa-chevron-down"></i> 点击展开详情
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 待办内容 -->
+            <div id="content-actions" class="p-5 hidden">
+                <div class="space-y-4">
+                    <!-- 待办1 -->
+                    <div class="bg-white rounded-lg border-l-4 border-red-500 p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="priority-high px-2 py-0.5 rounded text-xs font-bold">高优</span>
+                                    <span class="status-badge status-待开始">待开始</span>
+                                </div>
+                                <h4 class="font-bold text-gray-800">完成人事系统需求说明书并推进系统搭建</h4>
+                                <div class="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                                    <span><i class="fas fa-user mr-1"></i>负责人：黄燕婷</span>
+                                    <span class="text-red-600 font-medium"><i class="fas fa-calendar mr-1"></i>截止：半个月内</span>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                                    <i class="fas fa-file-alt text-red-500 text-lg"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 待办2 -->
+                    <div class="bg-white rounded-lg border-l-4 border-red-500 p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="priority-high px-2 py-0.5 rounded text-xs font-bold">高优</span>
+                                    <span class="status-badge status-进行中">进行中</span>
+                                </div>
+                                <h4 class="font-bold text-gray-800">更新组织架构图并明确职能分工</h4>
+                                <div class="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                                    <span><i class="fas fa-user mr-1"></i>负责人：杜宪</span>
+                                    <span class="text-red-600 font-medium"><i class="fas fa-calendar mr-1"></i>截止：6月30日前</span>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                                    <i class="fas fa-sitemap text-blue-500 text-lg"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 待办3 -->
+                    <div class="bg-white rounded-lg border-l-4 border-red-500 p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="priority-high px-2 py-0.5 rounded text-xs font-bold">高优</span>
+                                    <span class="status-badge status-待开始">待开始</span>
+                                </div>
+                                <h4 class="font-bold text-gray-800">打通捷顺停车系统与物业系统的自动结算接口</h4>
+                                <div class="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                                    <span><i class="fas fa-user mr-1"></i>负责人：陈双杰、小慧</span>
+                                    <span class="text-blue-600 font-medium"><i class="fas fa-calendar mr-1"></i>截止：三个月内</span>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                                    <i class="fas fa-plug text-purple-500 text-lg"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 待办4 -->
+                    <div class="bg-white rounded-lg border-l-4 border-amber-500 p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="priority-medium px-2 py-0.5 rounded text-xs font-bold">中优</span>
+                                    <span class="status-badge status-待开始">待开始</span>
+                                </div>
+                                <h4 class="font-bold text-gray-800">完成商办与物业的经营隔离方案</h4>
+                                <div class="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                                    <span><i class="fas fa-user mr-1"></i>负责人：李萍萍</span>
+                                    <span class="text-red-600 font-medium"><i class="fas fa-calendar mr-1"></i>截止：6月30日前</span>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                                    <i class="fas fa-building text-amber-500 text-lg"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 待办5 -->
+                    <div class="bg-white rounded-lg border-l-4 border-red-500 p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="priority-high px-2 py-0.5 rounded text-xs font-bold">高优</span>
+                                    <span class="status-badge status-进行中">进行中</span>
+                                </div>
+                                <h4 class="font-bold text-gray-800">完成靠谱人力资源的历史数据整理</h4>
+                                <div class="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                                    <span><i class="fas fa-user mr-1"></i>负责人：黄欢欢</span>
+                                    <span class="text-red-600 font-medium"><i class="fas fa-calendar mr-1"></i>截止：6月30日前</span>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                                    <i class="fas fa-database text-green-500 text-lg"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 参会人员 -->
+            <div id="content-participants" class="p-5 hidden">
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div class="bg-white rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-shadow">
+                        <div class="w-14 h-14 mx-auto bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-xl font-bold mb-2">J</div>
+                        <h4 class="font-bold text-gray-800">Jenny</h4>
+                        <p class="text-xs text-gray-500 mt-1">会议主导</p>
+                        <div class="mt-2 flex justify-center gap-1">
+                            <span class="px-2 py-0.5 bg-blue-100 text-blue-600 text-xs rounded">决策层</span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-shadow">
+                        <div class="w-14 h-14 mx-auto bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white text-xl font-bold mb-2">黄</div>
+                        <h4 class="font-bold text-gray-800">黄一萧</h4>
+                        <p class="text-xs text-gray-500 mt-1">参会</p>
+                        <div class="mt-2 flex justify-center gap-1">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">管理层</span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-shadow">
+                        <div class="w-14 h-14 mx-auto bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold mb-2">蔡</div>
+                        <h4 class="font-bold text-gray-800">蔡心宇</h4>
+                        <p class="text-xs text-gray-500 mt-1">参会</p>
+                        <div class="mt-2 flex justify-center gap-1">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">管理层</span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-shadow">
+                        <div class="w-14 h-14 mx-auto bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center text-white text-xl font-bold mb-2">A</div>
+                        <h4 class="font-bold text-gray-800">Angela</h4>
+                        <p class="text-xs text-gray-500 mt-1">参会</p>
+                        <div class="mt-2 flex justify-center gap-1">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">管理层</span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-shadow">
+                        <div class="w-14 h-14 mx-auto bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-full flex items-center justify-center text-white text-xl font-bold mb-2">B</div>
+                        <h4 class="font-bold text-gray-800">Bella</h4>
+                        <p class="text-xs text-gray-500 mt-1">系统建设负责人</p>
+                        <div class="mt-2 flex justify-center gap-1">
+                            <span class="px-2 py-0.5 bg-purple-100 text-purple-600 text-xs rounded">技术</span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-shadow">
+                        <div class="w-14 h-14 mx-auto bg-gradient-to-br from-amber-400 to-orange-600 rounded-full flex items-center justify-center text-white text-xl font-bold mb-2">王</div>
+                        <h4 class="font-bold text-gray-800">王倩 (Michelle)</h4>
+                        <p class="text-xs text-gray-500 mt-1">前台账务 / 后台决策</p>
+                        <div class="mt-2 flex justify-center gap-1">
+                            <span class="px-2 py-0.5 bg-amber-100 text-amber-600 text-xs rounded">财务</span>
+                            <span class="px-2 py-0.5 bg-red-100 text-red-600 text-xs rounded">待决策</span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-shadow">
+                        <div class="w-14 h-14 mx-auto bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-full flex items-center justify-center text-white text-xl font-bold mb-2">汪</div>
+                        <h4 class="font-bold text-gray-800">汪顺</h4>
+                        <p class="text-xs text-gray-500 mt-1">参会</p>
+                        <div class="mt-2 flex justify-center gap-1">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">管理层</span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-shadow">
+                        <div class="w-14 h-14 mx-auto bg-gradient-to-br from-rose-400 to-rose-600 rounded-full flex items-center justify-center text-white text-xl font-bold mb-2">欢</div>
+                        <h4 class="font-bold text-gray-800">黄欢欢</h4>
+                        <p class="text-xs text-gray-500 mt-1">账务/数据整理</p>
+                        <div class="mt-2 flex justify-center gap-1">
+                            <span class="px-2 py-0.5 bg-amber-100 text-amber-600 text-xs rounded">财务</span>
+                            <span class="px-2 py-0.5 bg-green-100 text-green-600 text-xs rounded">执行中</span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-shadow">
+                        <div class="w-14 h-14 mx-auto bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center text-white text-xl font-bold mb-2">燕</div>
+                        <h4 class="font-bold text-gray-800">黄燕婷</h4>
+                        <p class="text-xs text-gray-500 mt-1">后期参会 / 人事系统</p>
+                        <div class="mt-2 flex justify-center gap-1">
+                            <span class="px-2 py-0.5 bg-pink-100 text-pink-600 text-xs rounded">人事</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">后期</span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-shadow">
+                        <div class="w-14 h-14 mx-auto bg-gradient-to-br from-violet-400 to-violet-600 rounded-full flex items-center justify-center text-white text-xl font-bold mb-2">陈</div>
+                        <h4 class="font-bold text-gray-800">陈圆</h4>
+                        <p class="text-xs text-gray-500 mt-1">参会</p>
+                        <div class="mt-2 flex justify-center gap-1">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">管理层</span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-shadow">
+                        <div class="w-14 h-14 mx-auto bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center text-white text-xl font-bold mb-2">安</div>
+                        <h4 class="font-bold text-gray-800">安子玥</h4>
+                        <p class="text-xs text-gray-500 mt-1">会议记录</p>
+                        <div class="mt-2 flex justify-center gap-1">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">记录</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 时间线 -->
+            <div id="content-timeline" class="p-5 hidden">
+                <div class="max-w-3xl mx-auto">
+                    <div class="relative">
+                        <!-- 时间线主轴 -->
+                        <div class="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+
+                        <!-- 会议日 -->
+                        <div class="relative flex items-start gap-4 mb-8">
+                            <div class="timeline-dot bg-blue-500 border-4 border-blue-100 z-10 shrink-0"></div>
+                            <div class="bg-blue-50 rounded-lg p-4 flex-1 border border-blue-200">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-sm font-bold text-blue-800">2026年6月16日</span>
+                                    <span class="px-2 py-0.5 bg-blue-200 text-blue-700 text-xs rounded-full">今天</span>
+                                </div>
+                                <p class="text-sm text-gray-600">会议召开，明确各项决策与待办事项</p>
+                                <div class="mt-2 flex flex-wrap gap-1">
+                                    <span class="px-2 py-0.5 bg-white text-blue-600 text-xs rounded border border-blue-200">财务结算</span>
+                                    <span class="px-2 py-0.5 bg-white text-blue-600 text-xs rounded border border-blue-200">组织架构</span>
+                                    <span class="px-2 py-0.5 bg-white text-blue-600 text-xs rounded border border-blue-200">系统建设</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 两周内 -->
+                        <div class="relative flex items-start gap-4 mb-8">
+                            <div class="timeline-dot bg-amber-500 border-4 border-amber-100 z-10 shrink-0"></div>
+                            <div class="bg-amber-50 rounded-lg p-4 flex-1 border border-amber-200">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-sm font-bold text-amber-800">两周内（约6月30日）</span>
+                                    <span class="px-2 py-0.5 bg-amber-200 text-amber-700 text-xs rounded-full">决策截止</span>
+                                </div>
+                                <p class="text-sm text-gray-600">王倩决定是否接手后台管理工作</p>
+                                <div class="mt-2 flex items-center gap-2 text-xs text-amber-700">
+                                    <i class="fas fa-user"></i> 负责人：王倩(Michelle)
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 6月30日 -->
+                        <div class="relative flex items-start gap-4 mb-8">
+                            <div class="timeline-dot bg-red-500 border-4 border-red-100 z-10 shrink-0 pulse-glow"></div>
+                            <div class="bg-red-50 rounded-lg p-4 flex-1 border border-red-200">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-sm font-bold text-red-800">2026年6月30日</span>
+                                    <span class="px-2 py-0.5 bg-red-200 text-red-700 text-xs rounded-full">关键节点</span>
+                                </div>
+                                <ul class="text-sm text-gray-600 space-y-1 mt-2">
+                                    <li class="flex items-start gap-2"><i class="fas fa-check-circle text-red-400 mt-0.5"></i>完成靠谱人力资源现金流报表与PL表关闭</li>
+                                    <li class="flex items-start gap-2"><i class="fas fa-check-circle text-red-400 mt-0.5"></i>提交最终组织架构图</li>
+                                    <li class="flex items-start gap-2"><i class="fas fa-check-circle text-red-400 mt-0.5"></i>完成商办与物业经营隔离方案</li>
+                                    <li class="flex items-start gap-2"><i class="fas fa-check-circle text-red-400 mt-0.5"></i>完成靠谱人力资源历史数据整理</li>
+                                    <li class="flex items-start gap-2"><i class="fas fa-check-circle text-red-400 mt-0.5"></i>商办部门补全全年收入计划</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- 半个月内 -->
+                        <div class="relative flex items-start gap-4 mb-8">
+                            <div class="timeline-dot bg-purple-500 border-4 border-purple-100 z-10 shrink-0"></div>
+                            <div class="bg-purple-50 rounded-lg p-4 flex-1 border border-purple-200">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-sm font-bold text-purple-800">半个月内</span>
+                                    <span class="px-2 py-0.5 bg-purple-200 text-purple-700 text-xs rounded-full">项目截止</span>
+                                </div>
+                                <p class="text-sm text-gray-600">黄燕婷完成人事系统需求说明书并推进系统搭建</p>
+                                <div class="mt-2 flex items-center gap-2 text-xs text-purple-700">
+                                    <i class="fas fa-user"></i> 负责人：黄燕婷
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 三个月内 -->
+                        <div class="relative flex items-start gap-4">
+                            <div class="timeline-dot bg-indigo-500 border-4 border-indigo-100 z-10 shrink-0"></div>
+                            <div class="bg-indigo-50 rounded-lg p-4 flex-1 border border-indigo-200">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-sm font-bold text-indigo-800">三个月内（约9月中旬）</span>
+                                    <span class="px-2 py-0.5 bg-indigo-200 text-indigo-700 text-xs rounded-full">技术目标</span>
+                                </div>
+                                <p class="text-sm text-gray-600">打通捷顺停车系统与物业系统的自动结算接口</p>
+                                <div class="mt-2 flex items-center gap-2 text-xs text-indigo-700">
+                                    <i class="fas fa-users"></i> 负责人：陈双杰、小慧
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 倒计时
+        function updateCountdown() {
+            const target = new Date('2026-06-30');
+            const now = new Date();
+            const diff = Math.ceil((target - now) / (1000 * 60 * 60 * 24));
+            document.getElementById('countdown').textContent = diff > 0 ? diff : 0;
+        }
+        updateCountdown();
+        setInterval(updateCountdown, 60000);
+
+        // 标签切换
+        function switchTab(tabName) {
+            const tabs = ['agenda', 'actions', 'participants', 'timeline'];
+            tabs.forEach(t => {
+                document.getElementById('content-' + t).classList.add('hidden');
+                document.getElementById('tab-' + t).classList.remove('tab-active');
+                document.getElementById('tab-' + t).classList.add('text-gray-500');
+            });
+            document.getElementById('content-' + tabName).classList.remove('hidden');
+            document.getElementById('tab-' + tabName).classList.add('tab-active');
+            document.getElementById('tab-' + tabName).classList.remove('text-gray-500');
+        }
+
+        // 展开详情
+        function toggleDetail(element) {
+            const content = element.querySelector('.expandable-content');
+            const icon = element.querySelector('.fa-chevron-down');
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                content.classList.add('expanded');
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        // Chart.js 配置
+        // 状态分布饼图
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['进行中', '规划中', '待决策', '执行中', '优化中', '待开始'],
+                datasets: [{
+                    data: [5, 4, 1, 1, 1, 3],
+                    backgroundColor: ['#3b82f6', '#f472b6', '#fbbf24', '#34d399', '#818cf8', '#9ca3af'],
+                    borderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed + '项';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 类别分布柱状图
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(categoryCtx, {
+            type: 'bar',
+            data: {
+                labels: ['财务', '人事', '系统', '业务', '运营', '技术', '组织'],
+                datasets: [{
+                    label: '议程数',
+                    data: [2, 2, 2, 1, 1, 1, 1],
+                    backgroundColor: ['#fbbf24', '#f472b6', '#a78bfa', '#34d399', '#818cf8', '#22d3ee', '#60a5fa'],
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, font: { size: 10 } },
+                        grid: { color: '#f3f4f6' }
+                    },
+                    x: {
+                        ticks: { font: { size: 10 } },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
